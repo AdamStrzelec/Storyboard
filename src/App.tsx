@@ -5,6 +5,8 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { Theme } from 'src/theme/theme';
 import { GlobalStyle } from 'src/global/global.styles';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { Navbar } from 'src/components/organisms/Navbar/Navbar';
+import styled from 'styled-components';
 
 function App() {
 	const router = createBrowserRouter([
@@ -31,13 +33,10 @@ function App() {
 			<PersistGate loading={null} persistor={persistor}>
 				<GlobalStyle />
 				<Theme>
-					<div>
-						<a href="/">Dashboard</a>
-						<a href="/boards">Boards</a>
-						<a href="/profile">Profile</a>
-						<a href="/search">Search</a>
-					</div>
-					<RouterProvider router={router} />
+					<ContentWrapper>
+						<Navbar />
+						<RouterProvider router={router} />
+					</ContentWrapper>
 				</Theme>
 			</PersistGate>
 		</Provider>
@@ -45,3 +44,12 @@ function App() {
 }
 
 export default App;
+
+const ContentWrapper = styled.div`
+	display: flex;
+	flex-direction: row;
+	width: 100vw;
+	height: 100vh;
+	padding: 16px;
+	gap: 24px;
+`;
