@@ -1,14 +1,17 @@
+import { UniqueIdentifier } from '@dnd-kit/core';
 import React from 'react';
 import { IconButton } from 'src/components/atoms/IconButton/IconButton';
 import styled, { css } from 'styled-components';
 
 interface DragAndDropItemProps {
+	id: UniqueIdentifier;
 	text: string;
 	onEdit: () => void;
 	onDelete: () => void;
 }
 
 export const DragAndDropItem = ({
+	id,
 	text,
 	onEdit,
 	onDelete,
@@ -33,6 +36,12 @@ const Wrapper = styled.div(
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		margin: 8px 0;
+		user-select: none;
+
+		&:hover ${ButtonsWrapper} {
+			opacity: 1;
+		}
 	`,
 );
 
@@ -50,4 +59,6 @@ const Text = styled.p(
 const ButtonsWrapper = styled.div`
 	display: flex;
 	padding-right: 16px;
+	opacity: 0;
+	transition: opacity 0.15s ease-in-out;
 `;
