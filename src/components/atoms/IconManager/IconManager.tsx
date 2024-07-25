@@ -4,7 +4,7 @@ import { theme } from 'src/theme/theme';
 
 export type IconNames = keyof typeof Icons;
 
-type IconsColors = keyof typeof theme.colors;
+export type IconsColors = keyof typeof theme.colors;
 
 interface IconManagerProps extends Omit<Icons.SvgProps, 'color' | 'fill'> {
 	name: IconNames;

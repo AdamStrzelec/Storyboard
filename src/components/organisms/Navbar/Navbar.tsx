@@ -2,7 +2,7 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import { NavbarItem } from 'src/components/molecules/NavbarItem/NavbarItem';
 import UserImage from 'src/assets/images/user.jpeg';
-import { IconManager } from 'src/components/atoms/IconManager';
+import { IconManager } from 'src/components/atoms/IconManager/IconManager';
 
 export const Navbar = () => {
 	return (

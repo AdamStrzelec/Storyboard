@@ -1,6 +1,9 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
-import { IconManager, IconNames } from 'src/components/atoms/IconManager';
+import {
+	IconManager,
+	IconNames,
+} from 'src/components/atoms/IconManager/IconManager';
 
 interface NavbarItemProps {
 	to: string;

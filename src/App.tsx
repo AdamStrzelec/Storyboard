@@ -7,6 +7,7 @@ import { GlobalStyle } from 'src/global/global.styles';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Navbar } from 'src/components/organisms/Navbar/Navbar';
 import styled from 'styled-components';
+import { Board } from 'src/components/organisms/Board/Board';
 
 function App() {
 	const router = createBrowserRouter([
@@ -16,7 +17,7 @@ function App() {
 		},
 		{
 			path: '/boards',
-			element: <div>boards</div>,
+			element: <Board />,
 		},
 		{
 			path: '/profile',

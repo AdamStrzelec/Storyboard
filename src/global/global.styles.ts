@@ -10,5 +10,7 @@ export const GlobalStyle = createGlobalStyle`
         font-family: 'Inter';
         background-color: #F4F7FE;
         font-size: 13px;
+        font-weight: 400;
+        line-height: 18px;
     }
 `;
