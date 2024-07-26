@@ -26,6 +26,7 @@ export const Board = () => {
 		isAddNewCardItem,
 		setIsAddNewCardItem,
 		tasks,
+		handleChangeItemTitle,
 	} = useBoardState();
 
 	return (
@@ -34,6 +35,7 @@ export const Board = () => {
 				setState={(tasks) => handleChangeOrder(tasks, 'level1')}
 				addItem={(tasks) => handleAddItem(tasks, 'level2')}
 				deleteItem={(id) => handleDeleteItem(id)}
+				changeTitle={handleChangeItemTitle}
 				tasks={tasks['level1']}
 			>
 				{(parentId) => (
@@ -42,6 +44,7 @@ export const Board = () => {
 						addItem={(tasks) => handleAddItem(tasks, 'level3')}
 						tasks={tasks['level2']}
 						deleteItem={(id) => handleDeleteItem(id)}
+						changeTitle={handleChangeItemTitle}
 						parentId={parentId}
 					>
 						{(parentId) => (
@@ -50,6 +53,7 @@ export const Board = () => {
 									handleChangeOrder(tasks, 'level3')
 								}
 								deleteItem={(id) => handleDeleteItem(id)}
+								changeTitle={handleChangeItemTitle}
 								tasks={tasks['level3']}
 								parentId={parentId}
 							></Container>
@@ -85,6 +89,7 @@ interface ContainerProps {
 	children?: (parentId: string) => React.ReactElement;
 	setState: (tasks: ContainerTask[]) => void;
 	addItem?: (tasks: ContainerTask) => void;
+	changeTitle?: ({ id, title }: { id: string; title: string }) => void;
 	deleteItem?: (id: string) => void;
 }
 
@@ -94,6 +99,7 @@ const Container = ({
 	children,
 	setState,
 	addItem,
+	changeTitle,
 	deleteItem,
 }: ContainerProps) => {
 	const [editingTaskId, setEditingTaskId] = useState('');
@@ -149,6 +155,9 @@ const Container = ({
 											text={task.title}
 											onEdit={(id) => {
 												setEditingTaskId(id);
+											}}
+											onChangeTitle={({ id, title }) => {
+												changeTitle?.({ id, title });
 											}}
 											onDelete={(id) => {
 												deleteItem?.(id);

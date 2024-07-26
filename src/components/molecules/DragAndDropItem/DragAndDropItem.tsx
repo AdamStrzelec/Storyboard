@@ -9,6 +9,7 @@ interface DragAndDropItemProps {
 	id: string;
 	text?: string;
 	onEdit?: (id: string) => void;
+	onChangeTitle?: ({ id, title }: { id: string; title: string }) => void;
 	onDelete?: (id: string) => void;
 	isNewItem?: boolean;
 	onCancelAddNewItem?: () => void;
@@ -19,6 +20,7 @@ export const DragAndDropItem = ({
 	id,
 	text = '',
 	onEdit,
+	onChangeTitle,
 	onDelete,
 	isNewItem = false,
 	onCancelAddNewItem,
@@ -51,6 +53,7 @@ export const DragAndDropItem = ({
 		} else {
 			timeoutId = setTimeout(() => {
 				onEdit?.('');
+				onChangeTitle?.({ id, title: inputValue });
 			}, 100);
 
 			if (!inputValue) {
@@ -79,12 +82,16 @@ export const DragAndDropItem = ({
 						ref={inputRef}
 						value={inputValue}
 						onChange={(event) => {
-							event.preventDefault();
 							setInputValue(event.target.value);
+						}}
+						onKeyDown={(event) => {
+							if (event.code === 'Enter') {
+								setIsEditing(false);
+							}
 						}}
 					/>
 				) : (
-					<Text>{text}</Text>
+					<Text>{text !== inputValue ? inputValue : text}</Text>
 				)}
 			</TextWrapper>
 			<ButtonsWrapper>
