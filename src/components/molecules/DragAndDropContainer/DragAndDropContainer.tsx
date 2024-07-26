@@ -1,7 +1,6 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { DndContext, useDraggable, useDroppable } from '@dnd-kit/core';
 
 interface DragAndDropContainerProps {
 	id: string;
@@ -34,12 +33,7 @@ export const DragAndDropContainer = ({
 	};
 
 	return (
-		<div
-			ref={setNodeRef}
-			style={{ ...style, opacity: isDragging ? 0.5 : 1 }}
-			{...attributes}
-			{...listeners}
-		>
+		<div ref={setNodeRef} style={style} {...attributes} {...listeners}>
 			{children}
 		</div>
 	);

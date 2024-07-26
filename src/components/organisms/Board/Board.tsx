@@ -9,16 +9,13 @@ import {
 	useSensors,
 	closestCorners,
 	DragEndEvent,
-	Active,
 	UniqueIdentifier,
-	DragOverlay,
 } from '@dnd-kit/core';
 import {
 	arrayMove,
 	sortableKeyboardCoordinates,
 	SortableContext,
 	verticalListSortingStrategy,
-	rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { DragAndDropContainer } from 'src/components/molecules/DragAndDropContainer/DragAndDropContainer';
 
@@ -34,9 +31,46 @@ export const Board = () => {
 		{ id: '5', title: 'nested 2', parentId: '1' },
 		{ id: '6', title: 'nested 3', parentId: '2' },
 		{ id: '7', title: 'nested 4', parentId: '2' },
+		{ id: '8', title: 'nested 5', parentId: '3' },
+		{ id: '9', title: 'nested 6', parentId: '3' },
 	]);
 
-	const [active, setActive] = useState<UniqueIdentifier | null>(null);
+	const [tasksOfTasks, setTasksOfTasks] = useState([
+		{ id: '10', title: 'nested 7', parentId: '8' },
+		{ id: '11', title: 'nested 8', parentId: '8' },
+		{ id: '12', title: 'nested 9', parentId: '8' },
+	]);
+
+	return (
+		<Wrapper>
+			<Container tasks={tasks}>
+				{(id) => (
+					<Container tasks={nestedTasks} parentId={id}>
+						{(id) => (
+							<Container
+								tasks={tasksOfTasks}
+								parentId={id}
+							></Container>
+						)}
+					</Container>
+				)}
+			</Container>
+		</Wrapper>
+	);
+};
+
+interface ContainerProps {
+	tasks: { id: string; title: string; parentId?: string }[];
+	parentId?: string;
+	children?: (id: string) => React.ReactElement;
+}
+
+const Container = ({
+	tasks: tasksInitial,
+	parentId,
+	children,
+}: ContainerProps) => {
+	const [tasks, setTasks] = useState(tasksInitial);
 
 	const sensors = useSensors(
 		useSensor(PointerSensor),
@@ -46,150 +80,70 @@ export const Board = () => {
 	);
 
 	const getTaskPos = (id?: string) =>
-		nestedTasks.findIndex((task) => task.id === id);
+		tasks.findIndex((task) => task.id === id);
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		const { active, over } = event;
 
 		if (active.id === over?.id) return;
 
-		setNestedTasks((tasks) => {
+		setTasks((tasks) => {
 			const originalPos = getTaskPos(active.id as string);
 			const newPos = getTaskPos(over?.id as string);
 
 			return arrayMove(tasks, originalPos, newPos);
 		});
-
-		setActive(null);
 	};
-
-	const getTaskPosParent = (id: string) =>
-		tasks.findIndex((task) => task.id === id);
-
-	const handleDragEndParent = (event: DragEndEvent) => {
-		const { active, over } = event;
-
-		if (active.id === over?.id) return;
-
-		setTasks((tasks) => {
-			//@ts-expect-error FIXME
-			const originalPos = getTaskPosParent(active.id);
-			//@ts-expect-error FIXME
-			const newPos = getTaskPosParent(over.id);
-
-			return arrayMove(tasks, originalPos, newPos);
-		});
-	};
-
 	return (
-		<Wrapper>
-			<DndContext
-				sensors={sensors}
-				collisionDetection={closestCorners}
-				onDragEnd={handleDragEndParent}
+		<DndContext
+			sensors={sensors}
+			collisionDetection={closestCorners}
+			onDragEnd={handleDragEnd}
+		>
+			<SortableContext
+				items={tasks}
+				strategy={verticalListSortingStrategy}
 			>
-				<SortableContext
-					items={tasks}
-					strategy={verticalListSortingStrategy}
-				>
-					{tasks.map((task) => (
-						<DragAndDropContainer key={task.id} id={task.id}>
+				{tasks.map(
+					(task) =>
+						(parentId === task.parentId || !parentId) && (
 							<>
-								<DragAndDropItem
+								<DragAndDropContainer
 									id={task.id}
-									text={task.title}
-									onEdit={() => {
-										console.log('');
-									}}
-									onDelete={() => {
-										console.log('');
-									}}
-								/>
-								<DndContext
-									sensors={sensors}
-									collisionDetection={closestCorners}
-									onDragEnd={handleDragEnd}
-									// onDragOver={(event) => console.log(event)}
-									onDragMove={(event) => {
-										const { active, over } = event;
-										console.log('active: ', event);
-										console.log('over: ', over?.id);
-									}}
-									onDragStart={({ active }) => {
-										setActive(active.id);
-									}}
+									key={task.id}
 								>
-									<SortableContext
-										items={nestedTasks}
-										strategy={verticalListSortingStrategy}
-									>
-										{nestedTasks.map(
-											(nestedTask) =>
-												task.id ===
-													nestedTask.parentId && (
-													<DragAndDropContainer
-														id={nestedTask.id}
-														key={nestedTask.id}
-													>
-														<div
-															style={{
-																width: 'calc(100% - 20px)',
-															}}
-															onMouseDown={() => {
-																console.log(
-																	nestedTask.id,
-																);
-															}}
-														>
-															<DragAndDropItem
-																key={
-																	nestedTask.id
-																}
-																id={
-																	nestedTask.id
-																}
-																text={
-																	nestedTask.title
-																}
-																onEdit={() => {
-																	console.log(
-																		'',
-																	);
-																}}
-																onDelete={() => {
-																	console.log(
-																		'',
-																	);
-																}}
-															/>
-														</div>
-													</DragAndDropContainer>
-												),
-										)}
-										<DragOverlay>
-											{active && (
-												<DragAndDropItem
-													id={active}
-													text={'test'}
-													onEdit={() => {
-														console.log('');
-													}}
-													onDelete={() => {
-														console.log('');
-													}}
-												/>
-											)}
-										</DragOverlay>
-									</SortableContext>
-								</DndContext>
+									<DnDItemWrapper hasPadding={!!parentId}>
+										<DragAndDropItem
+											key={task.id}
+											id={task.id}
+											text={task.title}
+											onEdit={() => {
+												console.log('');
+											}}
+											onDelete={() => {
+												console.log('');
+											}}
+										/>
+										{children && children(task.id)}
+									</DnDItemWrapper>
+								</DragAndDropContainer>
 							</>
-						</DragAndDropContainer>
-					))}
-				</SortableContext>
-			</DndContext>
-		</Wrapper>
+						),
+				)}
+			</SortableContext>
+		</DndContext>
 	);
 };
+
+const DnDItemWrapper = styled.div<{ hasPadding: boolean }>(
+	({ hasPadding }) =>
+		hasPadding &&
+		css`
+			width: calc(100% - 16px);
+			align-self: flex-end;
+			transform: translateX(16px);
+		`,
+);
 
 const Wrapper = styled.div(
 	({ theme: { colors } }) => css`
