@@ -10,6 +10,7 @@ export const theme = {
 		background: '#F4F7FE',
 		boardBackground: '#ECF1FD',
 		delete: '#D61C1C',
+		addCard: '#88819F',
 	},
 };
 

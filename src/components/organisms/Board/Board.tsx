@@ -3,21 +3,19 @@ import { DragAndDropItem } from 'src/components/molecules/DragAndDropItem/DragAn
 import styled, { css } from 'styled-components';
 import {
 	DndContext,
-	KeyboardSensor,
-	PointerSensor,
 	useSensor,
 	useSensors,
 	closestCorners,
 	DragEndEvent,
-	UniqueIdentifier,
+	MouseSensor,
 } from '@dnd-kit/core';
 import {
 	arrayMove,
-	sortableKeyboardCoordinates,
 	SortableContext,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { DragAndDropContainer } from 'src/components/molecules/DragAndDropContainer/DragAndDropContainer';
+import { IconButton } from 'src/components/atoms/IconButton/IconButton';
 
 export const Board = () => {
 	const [tasks, setTasks] = useState([
@@ -41,6 +39,8 @@ export const Board = () => {
 		{ id: '12', title: 'nested 9', parentId: '8' },
 	]);
 
+	const [isAddNewCardItem, setIsAddNewCardItem] = useState(false);
+
 	return (
 		<Wrapper>
 			<Container tasks={tasks}>
@@ -55,6 +55,20 @@ export const Board = () => {
 					</Container>
 				)}
 			</Container>
+			{isAddNewCardItem && (
+				<DragAndDropItem
+					id={'50'}
+					isNewItem
+					onCancelAddNewItem={() => setIsAddNewCardItem(false)}
+				/>
+			)}
+
+			<IconButton
+				onClick={() => setIsAddNewCardItem(true)}
+				iconName={'Plus'}
+				iconColor={'addCard'}
+				text={'Add card'}
+			/>
 		</Wrapper>
 	);
 };
@@ -71,13 +85,16 @@ const Container = ({
 	children,
 }: ContainerProps) => {
 	const [tasks, setTasks] = useState(tasksInitial);
+	const [editingTaskId, setEditingTaskId] = useState('');
+	const [displayAddNewItemId, setDisplayAddNewItemId] = useState('');
 
-	const sensors = useSensors(
-		useSensor(PointerSensor),
-		useSensor(KeyboardSensor, {
-			coordinateGetter: sortableKeyboardCoordinates,
-		}),
-	);
+	const mouseSensor = useSensor(MouseSensor, {
+		activationConstraint: {
+			distance: 10,
+		},
+	});
+
+	const sensors = useSensors(mouseSensor);
 
 	const getTaskPos = (id?: string) =>
 		tasks.findIndex((task) => task.id === id);
@@ -117,7 +134,8 @@ const Container = ({
 											key={task.id}
 											id={task.id}
 											text={task.title}
-											onEdit={() => {
+											onEdit={(id) => {
+												setEditingTaskId(id);
 												console.log('');
 											}}
 											onDelete={() => {
@@ -125,6 +143,35 @@ const Container = ({
 											}}
 										/>
 										{children && children(task.id)}
+										{editingTaskId === task.id &&
+											children && (
+												<AddCardButtonWrapper>
+													<IconButton
+														onClick={() =>
+															setDisplayAddNewItemId(
+																task.id,
+															)
+														}
+														iconName={'Plus'}
+														iconColor={'addCard'}
+														text={'Add card'}
+													/>
+												</AddCardButtonWrapper>
+											)}
+										{displayAddNewItemId === task.id &&
+											!editingTaskId && (
+												<AddNewCardWrapper>
+													<DragAndDropItem
+														id={'50'}
+														isNewItem
+														onCancelAddNewItem={() =>
+															setDisplayAddNewItemId(
+																'',
+															)
+														}
+													/>
+												</AddNewCardWrapper>
+											)}
 									</DnDItemWrapper>
 								</DragAndDropContainer>
 							</>
@@ -140,10 +187,18 @@ const DnDItemWrapper = styled.div<{ hasPadding: boolean }>(
 		hasPadding &&
 		css`
 			width: calc(100% - 16px);
-			align-self: flex-end;
 			transform: translateX(16px);
 		`,
 );
+
+const AddCardButtonWrapper = styled.div`
+	transform: translateX(16px);
+`;
+
+const AddNewCardWrapper = styled.div`
+	width: calc(100% - 16px);
+	transform: translateX(16px);
+`;
 
 const Wrapper = styled.div(
 	({ theme: { colors } }) => css`

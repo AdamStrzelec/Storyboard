@@ -1,27 +1,108 @@
-import { UniqueIdentifier } from '@dnd-kit/core';
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { IconButton } from 'src/components/atoms/IconButton/IconButton';
+import { Input } from 'src/components/atoms/Input/Input';
+import useOnClickOutside from 'src/hooks/useOnClickOutside';
 import styled, { css } from 'styled-components';
 
 interface DragAndDropItemProps {
-	id: UniqueIdentifier;
-	text: string;
-	onEdit: () => void;
-	onDelete: () => void;
+	id: string;
+	text?: string;
+	onEdit?: (id: string) => void;
+	onDelete?: () => void;
+	isNewItem?: boolean;
+	onCancelAddNewItem?: () => void;
 }
 
 export const DragAndDropItem = ({
 	id,
-	text,
+	text = '',
 	onEdit,
 	onDelete,
+	isNewItem = false,
+	onCancelAddNewItem,
 }: DragAndDropItemProps) => {
+	const [isEditing, setIsEditing] = useState(false);
+	const [inputValue, setInputValue] = useState(text);
+
+	const wrapperRef = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
+
+	useOnClickOutside(wrapperRef, () => {
+		if (isNewItem) {
+			if (inputValue) {
+				//TODO add on save new item
+			} else {
+				onCancelAddNewItem?.();
+			}
+		} else {
+			setIsEditing(false);
+		}
+	});
+
+	useEffect(() => {
+		let timeoutId: ReturnType<typeof setTimeout>;
+
+		if (isEditing) {
+			onEdit?.(id);
+			inputRef?.current?.focus();
+		} else {
+			timeoutId = setTimeout(() => {
+				onEdit?.('');
+			}, 100);
+
+			if (!inputValue) {
+				setInputValue(text);
+			}
+		}
+
+		return () => clearTimeout(timeoutId);
+	}, [isEditing]);
+
+	useEffect(() => {
+		let timeoutId: ReturnType<typeof setTimeout>;
+
+		if (isNewItem) {
+			setIsEditing(true);
+		}
+
+		return () => clearTimeout(timeoutId);
+	}, [isNewItem]);
+
 	return (
-		<Wrapper>
-			<Text>{text}</Text>
+		<Wrapper ref={wrapperRef}>
+			<TextWrapper>
+				{isEditing ? (
+					<Input
+						ref={inputRef}
+						value={inputValue}
+						onChange={(event) => {
+							event.preventDefault();
+							setInputValue(event.target.value);
+						}}
+					/>
+				) : (
+					<Text>{text}</Text>
+				)}
+			</TextWrapper>
 			<ButtonsWrapper>
-				<IconButton iconName={'Edit'} iconColor={'text'} />
-				<IconButton iconName={'Delete'} iconColor={'delete'} />
+				<IconButton
+					onClick={() => {
+						setIsEditing((prevState) => !prevState);
+					}}
+					iconName={'Edit'}
+					iconColor={'text'}
+				/>
+				<IconButton
+					onClick={() => {
+						if (isNewItem) {
+							onCancelAddNewItem?.();
+						} else {
+							onDelete?.();
+						}
+					}}
+					iconName={'Delete'}
+					iconColor={'delete'}
+				/>
 			</ButtonsWrapper>
 		</Wrapper>
 	);
@@ -45,9 +126,13 @@ const Wrapper = styled.div(
 	`,
 );
 
+const TextWrapper = styled.div`
+	flex: 1;
+	padding: 16px 33px;
+`;
+
 const Text = styled.p(
 	({ theme: { colors } }) => css`
-		padding: 16px 33px;
 		color: ${colors.text};
 		flex: 1;
 		text-overflow: ellipsis;
