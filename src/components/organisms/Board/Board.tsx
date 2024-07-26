@@ -16,40 +16,42 @@ import {
 } from '@dnd-kit/sortable';
 import { DragAndDropContainer } from 'src/components/molecules/DragAndDropContainer/DragAndDropContainer';
 import { IconButton } from 'src/components/atoms/IconButton/IconButton';
+import { useBoardState, ContainerTask } from './useBoardState';
 
 export const Board = () => {
-	const [tasks, setTasks] = useState([
-		{ id: '1', title: 'Add tests to homepage' },
-		{ id: '2', title: 'Fix styling in about section' },
-		{ id: '3', title: 'Learn how to center a div' },
-	]);
-
-	const [nestedTasks, setNestedTasks] = useState([
-		{ id: '4', title: 'nested 1', parentId: '1' },
-		{ id: '5', title: 'nested 2', parentId: '1' },
-		{ id: '6', title: 'nested 3', parentId: '2' },
-		{ id: '7', title: 'nested 4', parentId: '2' },
-		{ id: '8', title: 'nested 5', parentId: '3' },
-		{ id: '9', title: 'nested 6', parentId: '3' },
-	]);
-
-	const [tasksOfTasks, setTasksOfTasks] = useState([
-		{ id: '10', title: 'nested 7', parentId: '8' },
-		{ id: '11', title: 'nested 8', parentId: '8' },
-		{ id: '12', title: 'nested 9', parentId: '8' },
-	]);
-
-	const [isAddNewCardItem, setIsAddNewCardItem] = useState(false);
+	const {
+		handleAddItem,
+		handleChangeOrder,
+		handleDeleteItem,
+		isAddNewCardItem,
+		setIsAddNewCardItem,
+		tasks,
+	} = useBoardState();
 
 	return (
 		<Wrapper>
-			<Container tasks={tasks}>
-				{(id) => (
-					<Container tasks={nestedTasks} parentId={id}>
-						{(id) => (
+			<Container
+				setState={(tasks) => handleChangeOrder(tasks, 'level1')}
+				addItem={(tasks) => handleAddItem(tasks, 'level2')}
+				deleteItem={(id) => handleDeleteItem(id)}
+				tasks={tasks['level1']}
+			>
+				{(parentId) => (
+					<Container
+						setState={(tasks) => handleChangeOrder(tasks, 'level2')}
+						addItem={(tasks) => handleAddItem(tasks, 'level3')}
+						tasks={tasks['level2']}
+						deleteItem={(id) => handleDeleteItem(id)}
+						parentId={parentId}
+					>
+						{(parentId) => (
 							<Container
-								tasks={tasksOfTasks}
-								parentId={id}
+								setState={(tasks) =>
+									handleChangeOrder(tasks, 'level3')
+								}
+								deleteItem={(id) => handleDeleteItem(id)}
+								tasks={tasks['level3']}
+								parentId={parentId}
 							></Container>
 						)}
 					</Container>
@@ -57,9 +59,13 @@ export const Board = () => {
 			</Container>
 			{isAddNewCardItem && (
 				<DragAndDropItem
-					id={'50'}
+					id={''}
 					isNewItem
 					onCancelAddNewItem={() => setIsAddNewCardItem(false)}
+					onAddItem={({ id, title }) => {
+						handleAddItem({ id, title }, 'level1');
+						setIsAddNewCardItem(false);
+					}}
 				/>
 			)}
 
@@ -74,17 +80,22 @@ export const Board = () => {
 };
 
 interface ContainerProps {
-	tasks: { id: string; title: string; parentId?: string }[];
+	tasks: ContainerTask[];
 	parentId?: string;
-	children?: (id: string) => React.ReactElement;
+	children?: (parentId: string) => React.ReactElement;
+	setState: (tasks: ContainerTask[]) => void;
+	addItem?: (tasks: ContainerTask) => void;
+	deleteItem?: (id: string) => void;
 }
 
 const Container = ({
-	tasks: tasksInitial,
+	tasks,
 	parentId,
 	children,
+	setState,
+	addItem,
+	deleteItem,
 }: ContainerProps) => {
-	const [tasks, setTasks] = useState(tasksInitial);
 	const [editingTaskId, setEditingTaskId] = useState('');
 	const [displayAddNewItemId, setDisplayAddNewItemId] = useState('');
 
@@ -104,12 +115,14 @@ const Container = ({
 
 		if (active.id === over?.id) return;
 
-		setTasks((tasks) => {
-			const originalPos = getTaskPos(active.id as string);
-			const newPos = getTaskPos(over?.id as string);
+		const originalPos = getTaskPos(active.id as string);
+		const newPos = getTaskPos(over?.id as string);
 
-			return arrayMove(tasks, originalPos, newPos);
-		});
+		const modifiedTasks = arrayMove(tasks, originalPos, newPos);
+
+		if (modifiedTasks) {
+			setState(modifiedTasks);
+		}
 	};
 	return (
 		<DndContext
@@ -136,10 +149,9 @@ const Container = ({
 											text={task.title}
 											onEdit={(id) => {
 												setEditingTaskId(id);
-												console.log('');
 											}}
-											onDelete={() => {
-												console.log('');
+											onDelete={(id) => {
+												deleteItem?.(id);
 											}}
 										/>
 										{children && children(task.id)}
@@ -162,13 +174,27 @@ const Container = ({
 											!editingTaskId && (
 												<AddNewCardWrapper>
 													<DragAndDropItem
-														id={'50'}
+														id={''}
 														isNewItem
 														onCancelAddNewItem={() =>
 															setDisplayAddNewItemId(
 																'',
 															)
 														}
+														onAddItem={({
+															id,
+															title,
+														}) => {
+															addItem?.({
+																id,
+																title,
+																parentId:
+																	task.id,
+															});
+															setDisplayAddNewItemId(
+																'',
+															);
+														}}
 													/>
 												</AddNewCardWrapper>
 											)}

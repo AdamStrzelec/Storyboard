@@ -3,14 +3,16 @@ import { IconButton } from 'src/components/atoms/IconButton/IconButton';
 import { Input } from 'src/components/atoms/Input/Input';
 import useOnClickOutside from 'src/hooks/useOnClickOutside';
 import styled, { css } from 'styled-components';
+import { v4 as uuidv4 } from 'uuid';
 
 interface DragAndDropItemProps {
 	id: string;
 	text?: string;
 	onEdit?: (id: string) => void;
-	onDelete?: () => void;
+	onDelete?: (id: string) => void;
 	isNewItem?: boolean;
 	onCancelAddNewItem?: () => void;
+	onAddItem?: ({ id, title }: { id: string; title: string }) => void;
 }
 
 export const DragAndDropItem = ({
@@ -20,6 +22,7 @@ export const DragAndDropItem = ({
 	onDelete,
 	isNewItem = false,
 	onCancelAddNewItem,
+	onAddItem,
 }: DragAndDropItemProps) => {
 	const [isEditing, setIsEditing] = useState(false);
 	const [inputValue, setInputValue] = useState(text);
@@ -30,7 +33,7 @@ export const DragAndDropItem = ({
 	useOnClickOutside(wrapperRef, () => {
 		if (isNewItem) {
 			if (inputValue) {
-				//TODO add on save new item
+				onAddItem?.({ title: inputValue, id: uuidv4() });
 			} else {
 				onCancelAddNewItem?.();
 			}
@@ -97,7 +100,7 @@ export const DragAndDropItem = ({
 						if (isNewItem) {
 							onCancelAddNewItem?.();
 						} else {
-							onDelete?.();
+							onDelete?.(id);
 						}
 					}}
 					iconName={'Delete'}
