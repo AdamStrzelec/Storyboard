@@ -104,6 +104,7 @@ export const useBoardState = () => {
 		Object.keys(updatedTasks).forEach((level) => {
 			updateTaskTitle(level as keyof TasksState);
 		});
+
 		dispatch(setItems({ tasks: updatedTasks }));
 	};
 
