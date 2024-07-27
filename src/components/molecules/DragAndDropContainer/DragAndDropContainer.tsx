@@ -11,19 +11,13 @@ export const DragAndDropContainer = ({
 	id,
 	children,
 }: DragAndDropContainerProps) => {
-	const {
-		attributes,
-		listeners,
-		setNodeRef,
-		transform,
-		transition,
-		isDragging,
-	} = useSortable({
-		id,
-		data: {
-			type: 'container',
-		},
-	});
+	const { attributes, listeners, setNodeRef, transform, transition } =
+		useSortable({
+			id,
+			data: {
+				type: 'container',
+			},
+		});
 
 	const style = {
 		transition,
