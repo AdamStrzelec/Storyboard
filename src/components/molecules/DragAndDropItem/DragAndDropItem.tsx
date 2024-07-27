@@ -53,7 +53,8 @@ export const DragAndDropItem = ({
 		} else {
 			timeoutId = setTimeout(() => {
 				onEdit?.('');
-				onChangeTitle?.({ id, title: inputValue });
+				//TO FIX
+				// onChangeTitle?.({ id, title: inputValue });
 			}, 100);
 
 			if (!inputValue) {

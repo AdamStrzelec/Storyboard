@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { RefObject, useEffect, useRef } from 'react';
 
 const MOUSEDOWN = 'mousedown';
 const TOUCHSTART = 'touchstart';
